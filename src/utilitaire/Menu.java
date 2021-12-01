@@ -16,7 +16,8 @@ public class Menu {
 				System.out.print("\n"); // sert a sauter une page a défaut de clear
 			}
 			
-			System.out.println(plateau);
+			Fonctions.afficher(plateau.getTerrain());
+			//System.out.println(plateau);
 
 			// faire un fichier avec des constantes si besoin
 			System.out.println("1) définir le joueur blanc");
