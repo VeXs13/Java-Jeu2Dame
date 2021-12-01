@@ -13,7 +13,7 @@ public class Dame extends Piece {
 	}
 
 	@Override
-	public HashMap<String, Point> deplacementsPossibles(String[][] terrain, Joueur joueur) {
+	public HashMap<String, Point> deplacementsPossibles(String[][] terrain, Joueur joueur,int hb,int gd,char pionAdverse, char dameAdverse) {
 
 		HashMap<String, Point> result = new HashMap<String, Point>();
 

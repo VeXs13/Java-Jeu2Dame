@@ -28,7 +28,7 @@ public abstract class Piece {
 		return visage;
 	}
 	
-	public abstract HashMap<String, Point> deplacementsPossibles(String[][] terrain, Joueur joueur);
+	public abstract HashMap<String, Point> deplacementsPossibles(String[][] terrain, Joueur joueur,int hb,int gd, char pionAdverse, char dameAdverse);
 	
 	@Override
 	public String toString() {

@@ -16,8 +16,7 @@ public class Menu {
 				System.out.print("\n"); // sert a sauter une page a défaut de clear
 			}
 			
-			Fonctions.afficher(plateau.getTerrain());
-			//System.out.println(plateau);
+			Fonctions.afficherAllInformations(plateau);
 
 			// faire un fichier avec des constantes si besoin
 			System.out.println("1) définir le joueur blanc");
@@ -31,19 +30,20 @@ public class Menu {
 
 			switch (choix) {
 			case "1":
-				plateau.defJoueur(0);
+				Options.defJoueur(plateau.getJoueurs(),0);
 				break;
 			case "2":
-				plateau.defJoueur(1);
+				Options.defJoueur(plateau.getJoueurs(),1);
 				break;
 			case "3":
-				plateau.changerCarte();
+				Options.changerCarte(plateau);
 				break;
 			case "4":
 				continuer = false;
 				plateau.setJouer(false);
 				break;
 			case "5":
+				System.out.println("???");
 				continuer = false;
 				plateau.setJouer(true);
 				break;
