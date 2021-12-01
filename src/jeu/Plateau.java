@@ -41,7 +41,7 @@ public class Plateau {
 		while (jouer) {// boucle infinie
 			
 			terrain = Fonctions.remplirTerrain(HB, GD, caseDefaut, joueurs);// remettre la tableau a plat
-			deroulement = Fonctions.recupererTerrain(terrain, nbTours);
+			deroulement = Fonctions.recupererTerrain(terrain, nbTours,HB,GD);
 
 			for (int i = 0; i < 2; i++) {// boucle des joueurs
 
@@ -187,7 +187,7 @@ public class Plateau {
 		System.out.println("destination : i = " + choixPossible.get(choixMouvement).getI() + " j = "
 				+ choixPossible.get(choixMouvement).getJ());
 		
-		recupererLeCoup += Fonctions.traductionMouvement(piece,choixPossible.get(choixMouvement));
+		recupererLeCoup += Fonctions.traductionMouvement(piece,choixPossible.get(choixMouvement),HB,GD);
 
 		String kill = swap(piece, choixPossible.get(choixMouvement));
 

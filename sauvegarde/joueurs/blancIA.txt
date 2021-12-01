@@ -1,0 +1,4 @@
+nombre de parties      : 1
+nombre de victoires    : 0
+nombre de defaites     : 1
+nombre de matchs nuls  : 0

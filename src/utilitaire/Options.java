@@ -17,9 +17,9 @@ public class Options {
 
 	final static String[] adresses = 
 		{ 
-			"./externes/defaut",
-			"./externes/voici",
-			"./externes/voila"
+			"./externes/international",
+			"./externes/anglaise",
+			"./externes/canadien"
 			
 		
 		};

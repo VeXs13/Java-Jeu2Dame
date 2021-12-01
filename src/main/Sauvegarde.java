@@ -3,7 +3,6 @@ package main;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -21,7 +20,7 @@ public class Sauvegarde {
 	private Joueur joueur1;
 	private Joueur joueur2;
 
-	private final SimpleDateFormat DATE = new SimpleDateFormat("yyyy-MM-dd a hh-mm-ss");
+	private final SimpleDateFormat DATE = new SimpleDateFormat("yyyy-MM-dd - hh-mm-ss");
 	private final Date DEBUT = new Date();
 
 	// les dossiers en majuscules

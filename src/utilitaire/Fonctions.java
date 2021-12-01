@@ -113,9 +113,13 @@ public class Fonctions {
 	// ------------------niveau 3
 	public static void afficher(String[][] terrain) {
 
+		
 		if (terrain == null) {
 			System.out.println("aucun terrain sélectionné");
 		} else {
+			
+			int hb = terrain.length;
+			int gd = terrain[0].length;
 
 			for (int i = 0; i < terrain.length; i++) {
 				for (int j = 0; j < terrain[i].length; j++) {
@@ -123,12 +127,26 @@ public class Fonctions {
 				}
 
 				if (i % 2 == 0) {
-					System.out.print(formater(46 - i * 5, 7));
+					System.out.print(formater((hb * gd / 2) - (i * (hb / 2)+(gd/2)) + 1, 7));
 				}
 
 				System.out.print("\n");
 			}
-			System.out.println(" 5     4     3     2     1    ");
+
+			String inter = "";
+			int max = gd / 2;
+
+			for (int j = 0; j < 3 * gd; j++) {
+
+				if (j % 6 == 1) {
+					inter += max;
+					max--;
+				} else {
+					inter += " ";
+				}
+
+			}
+			System.out.println(inter);
 		}
 
 	}
@@ -279,7 +297,7 @@ public class Fonctions {
 		return true;
 	}
 
-	public static ArrayList<String> recupererTerrain(String[][] terrain, int nbTours) {
+	public static ArrayList<String> recupererTerrain(String[][] terrain, int nbTours, int hb, int gd) {
 
 		ArrayList<String> result = new ArrayList<String>();
 
@@ -293,31 +311,46 @@ public class Fonctions {
 			}
 
 			if (i % 2 == 0) {
-				inter += formater(46 - i * 5, 7);
+				inter += formater( ( (hb * gd ) - ((i * hb ) + gd) )/2 + 1 , 7);
 			}
 
 			result.add(inter);
 		}
-		result.add(" 5     4     3     2     1    ");
+
+		inter = "";
+		int max = gd / 2;
+
+		for (int j = 0; j < 3 * gd; j++) {
+
+			if (j % 6 == 1) {
+				inter += max;
+				max--;
+			} else {
+				inter += " ";
+			}
+
+		}
+
+		result.add(inter);
 		result.add("");
 		result.add("tour : " + nbTours);
 
 		return result;
 	}
 
-	public static String traductionMouvement(Piece depart, Positions arrive) {
-
-		int debut = 50 - (depart.getI() * 5 + depart.getJ() / 2);
+	public static String traductionMouvement(Piece depart, Positions arrive, int hb, int gd) {
+		
+		int debut = ( (hb * gd ) - ( (depart.getI() * hb)  + (depart.getJ() - 1  ) ) ) / 2  ;
 		String milieu = sameValue(arrive.getManger(), "") ? "-" : "x";
-		int fin = 50 - (arrive.getI() * 5 + arrive.getJ() / 2);
+		int fin = ( (hb * gd ) - ( (arrive.getI() * hb  + arrive.getJ() - 1  ) ) ) / 2;
 
 		return debut + milieu + fin;
 	}
 
 	public static String presenter(String texte) {
 
-		//System.out.println("=> "+texte);
-		
+		// System.out.println("=> "+texte);
+
 		if (texte == null || texte == "") {
 			return "";
 		}
@@ -336,7 +369,7 @@ public class Fonctions {
 			fin = texte.charAt(i) + fin;
 		}
 
-		//System.out.println( debut + "x" + fin + " =>");
+		// System.out.println( debut + "x" + fin + " =>");
 		return debut + "x" + fin;
 	}
 
