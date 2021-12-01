@@ -1,20 +1,23 @@
 package utilitaire;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map.Entry;
+import java.util.Map;
+import java.util.Random;
 import java.util.Scanner;
+import java.util.Map.Entry;
 
 import jeu.Joueur;
 import jeu.Plateau;
 import piece.Piece;
-import piece.Point;
+import piece.Positions;
 
 public class Fonctions {
 
 	@SuppressWarnings("resource")
 	public static String giveString() {
 
-		return new Scanner(System.in).nextLine().toLowerCase();
+		return new Scanner(System.in).nextLine();
 
 	}
 
@@ -35,6 +38,79 @@ public class Fonctions {
 		return result;
 	}
 
+	public static String[][] remplirTerrain(int hb, int gd, String motif, Joueur[] joueurs) {
+		String[][] result = new String[hb][gd];
+
+		for (int i = 0; i < result.length; i++) {
+			for (int j = 0; j < result[i].length; j++) {
+				result[i][j] = motif;
+			}
+		}
+
+		for (Joueur joueur : joueurs) {
+
+			for (Map.Entry<Integer, Piece> map : joueur.getPieces().entrySet()) {
+				result[map.getValue().getI()][map.getValue().getJ()] = map.getValue().getVisage();
+			}
+		}
+		return result;
+	}
+
+	public static boolean aucunDeplacementPossible(String[][] terrain, int HB, int GD, Joueur joueur,
+			Joueur joueurAdverse) {
+
+		String[][] terrainCopy = terrain.clone();
+
+		char pionAdverse = joueurAdverse.getPion();
+		char dameAdverse = joueurAdverse.getDame();
+
+		HashMap<String, Positions> result;
+
+		for (Entry<Integer, Piece> piece : joueur.getPieces().entrySet()) {
+
+			result = piece.getValue().deplacementsPossibles(terrainCopy, joueur, HB, GD, pionAdverse, dameAdverse);
+
+			if (result.size() > 0) {
+				return false;
+			}
+
+		}
+		return true;
+	}
+
+	public static boolean contien(String tableau, char lettre1, char lettre2) {
+
+		for (int i = 0; i < tableau.length(); i++) {
+
+			if (tableau.charAt(i) == lettre1 || tableau.charAt(i) == lettre2) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	// ------------------niveau 1
+	public static void afficherAllInformations(Plateau plateau) {
+
+		for (int i = 0; i < 20; i++)
+			System.out.println("\n");
+		Fonctions.afficher(plateau.getTerrain());
+		System.out.print("\ntour : " + plateau.getNbTours() + "\n\n");
+		Fonctions.afficherAll(plateau.getJoueurs());
+
+	}
+
+	// ------------------niveau 2
+	private static void afficherAll(Joueur[] joueurs) {
+
+		for (Joueur joueur : joueurs) {
+			System.out.println(joueur.getAllInformations());
+		}
+
+	}
+
+	// ------------------niveau 3
 	public static void afficher(String[][] terrain) {
 
 		if (terrain == null) {
@@ -45,12 +121,39 @@ public class Fonctions {
 				for (int j = 0; j < terrain[i].length; j++) {
 					System.out.print(terrain[i][j]);
 				}
+
+				if (i % 2 == 0) {
+					System.out.print(formater(46 - i * 5, 7));
+				}
+
 				System.out.print("\n");
 			}
+			System.out.println(" 5     4     3     2     1    ");
 		}
 
 	}
 
+	// ------------------niveau 2
+	public static void afficherInformations(Plateau plateau, String texte) {
+		afficherInformations(plateau);
+		System.out.println(texte);
+
+	}
+
+	// ------------------niveau 3
+	public static void afficherInformations(Plateau plateau) {
+
+		for (int i = 0; i < 20; i++) {
+			System.out.println("\n");
+		}
+
+		Fonctions.afficher(plateau.getTerrain());
+		System.out.print("\ntour : " + plateau.getNbTours() + "\n\n");
+		Fonctions.afficher(plateau.getJoueurs());
+
+	}
+
+	// ------------------niveau 4
 	private static void afficher(Joueur[] joueurs) {
 
 		for (Joueur joueur : joueurs) {
@@ -59,12 +162,16 @@ public class Fonctions {
 
 	}
 
-	private static void afficherAll(Joueur[] joueurs) {
-
-		for (Joueur joueur : joueurs) {
-			System.out.println(joueur.getAllInformations());
+	public static int trad(String nbr) {
+		int result = 0;
+		for (int i = 1; i < nbr.length(); i++) {
+			if ('0' <= nbr.charAt(i) && nbr.charAt(i) <= '9') {
+				result = (result * 10) + nbr.charAt(i) - '0';
+			} else {
+				return result;
+			}
 		}
-
+		return result;
 	}
 
 	public static String formater(int chiffre, int taille) {
@@ -83,86 +190,154 @@ public class Fonctions {
 		return result;
 	}
 
-	public static void afficherInformations(Plateau plateau) {
+	// niveau 1
+	public static int choixPiece(boolean controlIA, int tailleMax) {
 
-		for (int i = 0; i < 20; i++)
-			System.out.println("\n");
-		Fonctions.afficher(plateau.getTerrain());
-		System.out.print("\ntour : " + plateau.getNbtours() + "\n\n");
-		Fonctions.afficher(plateau.getJoueurs());
+		if (controlIA) {
+			return Fonctions.nbrAleatoire(1, tailleMax);
+		} else {
 
-	}
-
-	public static void afficherAllInformations(Plateau plateau) {
-
-		for (int i = 0; i < 20; i++)
-			System.out.println("\n");
-		Fonctions.afficher(plateau.getTerrain());
-		System.out.print("\ntour : " + plateau.getNbtours() + "\n\n");
-		Fonctions.afficherAll(plateau.getJoueurs());
-
-	}
-
-	public static int trad(String nbr) {
-		int result = 0;
-		for (int i = 1; i < nbr.length(); i++) {
-			if ('0' <= nbr.charAt(i) && nbr.charAt(i) <= '9') {
-				result = (result * 10) + nbr.charAt(i) - '0';
-			} else {
-				return result;
-			}
+			return Fonctions.giveInt();
 		}
-		return result;
 	}
 
-	public static boolean aucunDeplacementPossible(String[][] terrain, Joueur joueur, int hb, int gd, char pionAdverse,
-			char dameAdverse) {
+	public static int nbrAleatoire(int min, int max) {
 
-		for (Entry<Integer, Piece> piece : joueur.getPieces().entrySet()) {
+		return min + new Random().nextInt(max + 1 - min);
+	}
 
-			// System.out.print(piece.getKey() + " = ");
+	public static String choixMouvement(boolean controlIA, int tailleMax) {
 
-			HashMap<String, Point> result;
+		if (controlIA) {
 
-			result = piece.getValue().deplacementsPossibles(terrain, joueur, hb, gd, pionAdverse, dameAdverse);
+			return Integer.toString(Fonctions.nbrAleatoire(1, tailleMax));
+		} else {
 
-			// System.out.println(result.size());
+			return Fonctions.giveString();
+		}
+	}
 
-			if (result.size() > 0) {
+	public static String abanddon(Joueur joueurAdverse) {
+		System.out.println("le joueur " + joueurAdverse.getName() + " souhaite abandonner");
+		System.out.println("0 pour annuler");
+		System.out.println("1 pour déclarer match null");
+		System.out.println("2 pour confirmer l'abandon");
+		System.out.print("choix : ");
 
+		String choix = giveString();
+
+		if (joueurAdverse.getControlByIA()) {
+			choix = "2";
+		}
+
+		switch (choix) {
+
+		case "1":
+			return "null";
+
+		case "2":
+			return "abandon";
+
+		default:
+			return "";
+		}
+	}
+
+	public static String combine(String texte, int ajout) {
+
+		String result = "";
+
+		int i = 0;
+		while (texte.charAt(i) < '0' || '9' < texte.charAt(i)) {
+			result += texte.charAt(i);
+			i++;
+		}
+		int valeur = 0;
+
+		while (i < texte.length() && '0' <= texte.charAt(i) && texte.charAt(i) <= '9') {
+			valeur = (valeur * 10) + (texte.charAt(i) - '0');
+			i++;
+		}
+		valeur += ajout;
+		return result + valeur;
+	}
+
+	public static boolean sameValue(String nom1, String nom2) {
+
+		if (nom1.length() != nom2.length()) {
+			return false;
+		}
+
+		for (int i = 0; i < nom1.length(); i++) {
+
+			if (nom1.charAt(i) != nom2.charAt(i)) {
 				return false;
 			}
 
-			// if(piece.getValue().deplacementsPossibles(plateau.getTerrain(),
-			// joueur,plateau.getHB(),plateau.getGD()).size() > 0) {
-			// return true;
-			// }
 		}
 
 		return true;
 	}
 
-	public static void afficherInformations(Plateau plateau, String texte) {
-		afficherInformations(plateau);
-		System.out.println(texte);
+	public static ArrayList<String> recupererTerrain(String[][] terrain, int nbTours) {
 
+		ArrayList<String> result = new ArrayList<String>();
+
+		String inter = "";
+
+		for (int i = 0; i < terrain.length; i++) {
+			inter = "";
+
+			for (int j = 0; j < terrain[i].length; j++) {
+				inter += terrain[i][j];
+			}
+
+			if (i % 2 == 0) {
+				inter += formater(46 - i * 5, 7);
+			}
+
+			result.add(inter);
+		}
+		result.add(" 5     4     3     2     1    ");
+		result.add("");
+		result.add("tour : " + nbTours);
+
+		return result;
 	}
 
-	public static boolean aucunDeplacementPossible(Plateau plateau, Joueur joueur) {
+	public static String traductionMouvement(Piece depart, Positions arrive) {
 
-		if (joueur.getCouleur() == "blanc") {
-			if (Fonctions.aucunDeplacementPossible(plateau.getTerrain(), joueur, plateau.getHB(), plateau.getGD(),
-					plateau.getPnoir(), plateau.getDnoir())) {
-				return true;
-			}
-		} else {
-			if (Fonctions.aucunDeplacementPossible(plateau.getTerrain(), joueur, plateau.getHB(), plateau.getGD(),
-					plateau.getPblanc(), plateau.getDblanc())) {
-				return true;
-			}
+		int debut = 50 - (depart.getI() * 5 + depart.getJ() / 2);
+		String milieu = sameValue(arrive.getManger(), "") ? "-" : "x";
+		int fin = 50 - (arrive.getI() * 5 + arrive.getJ() / 2);
+
+		return debut + milieu + fin;
+	}
+
+	public static String presenter(String texte) {
+
+		//System.out.println("=> "+texte);
+		
+		if (texte == null || texte == "") {
+			return "";
 		}
 
-		return false;
+		if (texte.contains("-")) {
+			return texte;
+		}
+
+		String debut = "";
+		for (int i = 0; texte.charAt(i) != 'x' && i < texte.length(); i++) {
+			debut += texte.charAt(i);
+		}
+
+		String fin = "";
+		for (int i = texte.length() - 1; texte.charAt(i) != 'x' && i > 0; i--) {
+			fin = texte.charAt(i) + fin;
+		}
+
+		//System.out.println( debut + "x" + fin + " =>");
+		return debut + "x" + fin;
 	}
 
 }

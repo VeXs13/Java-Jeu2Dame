@@ -15,7 +15,14 @@ public class Options {
 	final static String config = "/config.properties";
 	final static String position = "/position.txt";
 
-	final static String[] adresses = { "./externes/defaut", "./externes/voici", "./externes/voila" };
+	final static String[] adresses = 
+		{ 
+			"./externes/defaut",
+			"./externes/voici",
+			"./externes/voila"
+			
+		
+		};
 
 	public static void defJoueur(Joueur[] joueurs, int i) {
 
@@ -220,6 +227,11 @@ public class Options {
 			dblanc = prC.getProperty("dblanc").charAt(0);
 			pnoir = prC.getProperty("pnoir").charAt(0);
 			dnoir = prC.getProperty("dnoir").charAt(0);
+			
+			plateau.getJoueurs()[0].setPion(pblanc);
+			plateau.getJoueurs()[0].setDame(dblanc);
+			plateau.getJoueurs()[1].setPion(pnoir);
+			plateau.getJoueurs()[1].setDame(dnoir);
 
 			plateau.setPblanc(pblanc);
 			plateau.setDblanc(dblanc);
@@ -296,8 +308,13 @@ public class Options {
 
 			}
 		}
-
-		plateau.remplirTerrainBase();
+		
+		plateau.getJoueurs()[0].setTaille(plateau.getJoueurs()[0].getPieces().size());
+		plateau.getJoueurs()[1].setTaille(plateau.getJoueurs()[1].getPieces().size());
+		
+	
+		plateau.setTerrain( Fonctions.remplirTerrain(plateau.getHB(),plateau.getGD(), " . ",plateau.getJoueurs() ));
+		
 		// util.afficher(terrain); //a comparer avec position.txt
 
 		try {

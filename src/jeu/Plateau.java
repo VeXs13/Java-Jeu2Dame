@@ -1,240 +1,318 @@
 package jeu;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
+
+import main.Sauvegarde;
+import piece.Dame;
 import piece.Piece;
-import piece.Point;
+import piece.Positions;
 import utilitaire.Fonctions;
 
 public class Plateau {
 
-	int GD;
-	int HB;
+	private Sauvegarde sauvegarde = new Sauvegarde();
 
-	String[][] terrain;
+	private int HB, GD;
+	private String caseDefaut = " . ";
 
-	char pblanc, dblanc, pnoir, dnoir;
+	private String[][] terrain;
 
-	Joueur[] joueurs = { new Joueur("blanc", "blancIA"), new Joueur("noir", "noirIA") };
+	private char pblanc, dblanc, pnoir, dnoir;
 
-	int nbtours = 1;
-	boolean jouer = false;
-	String texte = ""; // sert a récupérer les messages de fautes pour les voir
+	private Joueur[] joueurs = { new Joueur("blanc", "blancIA"), new Joueur("noir", "noirIA") };
 
-	public void remplirTerrainBase() {
+	private int nbTours = 1;
+	private boolean jouer = false;
+	private String texteErreur;
 
-		for (int i = 0; i < terrain.length; i++) {
-			for (int j = 0; j < terrain[i].length; j++) {
-				terrain[i][j] = " . ";
-			}
-		}
-		for (Map.Entry<Integer, Piece> map : joueurs[0].getPieces().entrySet()) {
-			terrain[map.getValue().getI()][map.getValue().getJ()] = map.getValue().getVisage();
-		}
-		for (Map.Entry<Integer, Piece> truc : joueurs[1].getPieces().entrySet()) {
-			terrain[truc.getValue().getI()][truc.getValue().getJ()] = truc.getValue().getVisage();
-		}
-	}
+	private ArrayList<String> deroulement;
+	private String recupererLeCoup;
 
 	public void start() {
 
-		System.out.println("start");
+		// crée les fichiers nécessaires
+		sauvegarde.init(this);
+
+		// if(true) {return;}
+
+		System.out.println("c'est l'heure du tutututu duel");
 
 		while (jouer) {// boucle infinie
+			
+			terrain = Fonctions.remplirTerrain(HB, GD, caseDefaut, joueurs);// remettre la tableau a plat
+			deroulement = Fonctions.recupererTerrain(terrain, nbTours);
 
-			for (Joueur joueur : joueurs) {// boucle des joueurs
+			for (int i = 0; i < 2; i++) {// boucle des joueurs
 
+				//recupere les coups joues pour l'enregistrement
+				recupererLeCoup = "";
+				
+				Joueur joueur = joueurs[i];
 				joueur.setMonTour(true);
+				boolean controlIA = joueur.getControlByIA();
+				int taille = joueur.getTaille();
+				Joueur joueurAdverse = joueurs[(i + 1) % 2];
 
-				while (joueur.getMonTour()) {// boucle infinie du joueur
+				while (joueur.getMonTour()) {// tant que c'est le tour du joueur
 
-					remplirTerrainBase();// remettre la tableau a plat
+					terrain = Fonctions.remplirTerrain(HB, GD, caseDefaut, joueurs);// remettre la tableau a plat
 
-					Fonctions.afficherInformations(this, texte);// aficher le plateau
-					texte = "";
+					Fonctions.afficherInformations(this, texteErreur);// aficher le plateau avec l'éventuel "erreur"
+																		// commise
+					texteErreur = "";
 
 					// vérifier si il lui reste des pions
-					if (Fonctions.aucunDeplacementPossible(this, joueur)) {
-						System.out.println("faire une fonction d'abandon contrainte ???");
+					if (Fonctions.aucunDeplacementPossible(terrain, HB, GD, joueur, joueurAdverse)) {
+
+						try {
+							deroulement.add(Fonctions.presenter(recupererLeCoup));
+							sauvegarde.addHistorique(deroulement);
+							Sauvegarde.gagner(joueurAdverse, joueur);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 						return;
 					}
 
-					remplirTerrainBase();// remettre la tableau a plat
-					
-					System.out.print("tour du joueur : " + joueur.getName()+ "\n'0' pour abandonner\nsélectionner une piéce : ");
-					
-					int choixPiece = Fonctions.giveInt();
-					System.out.println("choixPiece = " + choixPiece);// ligne de vérification du nombre retourné
+					System.out.print("tour du joueur : " + joueur.getName()
+							+ "\n'0' pour abandonner\nsélectionner une piéce : ");
 
+					int choixPiece = Fonctions.choixPiece(controlIA, taille);
+
+					// System.out.println("\n-----------choixPiece----------------\n" + choixPiece);
+
+					// fonction d'abanddon / match null
 					if (choixPiece == 0) {
-						System.out.println("faire une super fonction d'abandon volontaire ici");
+						try {
+							switch (Fonctions.abanddon(joueur)) {
+
+							case "abandon":
+
+								Sauvegarde.abandon(joueur, joueurAdverse);
+								deroulement.add(Fonctions.presenter(recupererLeCoup));
+								sauvegarde.addHistorique(deroulement);
+								return;
+
+							case "nul":
+								
+								Sauvegarde.nul(joueur, joueurAdverse);
+								deroulement.add(Fonctions.presenter(recupererLeCoup));
+								sauvegarde.addHistorique(deroulement);
+								return;
+							}
+
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
 					}
 
 					if (!joueur.getPieces().containsKey(choixPiece)) {
 
-						texte = "cette piéce n'existe pas";
+						texteErreur = "cette piéce n'existe pas";
+						continue;
+					}
 
-					} else {
-						
+					Piece piece = joueur.getPieces().get(choixPiece);
 
-						Piece piece = joueur.getPieces().get(choixPiece);
-						System.out.println("piece choisie : " +piece);// vérifier que c'est bien la bonne piéce
+					if (!deplacementLibre(true, piece, joueur, joueurAdverse)) {
+						continue;
+					};
 
-						// collecter tous les déplacements possible pour la piéce + les numéros sur le
-						// tableau
-						// sépaer en plusieurs fonctions ?
-						
+					evolution(piece, HB);
+
+					joueur.setMonTour(false);
 					
-						
-						HashMap<String, Point> choix;
-						if (joueur.getCouleur() == "blanc") {
-							
-							choix = piece.deplacementsPossibles(terrain, joueur, HB, GD, pnoir, dnoir);
-						
-						} else {
-							
-							choix = piece.deplacementsPossibles(terrain, joueur, HB, GD, pblanc, dblanc);
-							
-							
-						}
-											
-						// si la piéce ne peut se déplacer nulle part on quitte cette piece
-						if (choix.size() == 0) {
-
-							texte = "cette piéce ne peut pas se déplacer";
-
-						} else {
-
-							// réafficher le terrain avec les déplacements possibles
-							Fonctions.afficherInformations(this);
-
-							System.out.print("faire un choix ou 0 pour annuler : ");
-							String choixMouvement = Fonctions.giveString();
-
-							// si le mouvement est légitime
-							if (choix.containsKey(choixMouvement)) {
-								// alors on échange + kill
-								String kill = swap(piece, choix.get(choixMouvement));
-								
-								if(kill != "") {
-									if(kill.charAt(0) == pblanc || kill.charAt(0) == dblanc) {
-										this.getJoueurs()[0].getPieces().remove(Fonctions.trad(kill));
-										texte = "je bouffe chez les blanc";
-									}else {
-										this.getJoueurs()[1].getPieces().remove(Fonctions.trad(kill));
-										texte = "je bouffe chez les noir";
-									}
-								}
-								
-								joueur.setMonTour(false); // passage au tour de l'autre joueur
-
-							}
-
+					deroulement.add(Fonctions.presenter(recupererLeCoup));
+					
+					if (joueur.getCouleur() == "noir") {
+						nbTours++;
+						try {
+							sauvegarde.addHistorique(deroulement);
+						} catch (Exception e) {
+							e.printStackTrace();
 						}
 					}
 
-				} // boucle infinie du joueur
+				} // tant que c'est le tour du joueur
+
 			} // boucle des joueurs
+
 		} // boucle infinie
+
 	}
 
-	private String swap(Piece piece, Point destination) {
+	private boolean deplacementLibre(boolean libre, Piece piece, Joueur j, Joueur jA) {
+
+		terrain = Fonctions.remplirTerrain(HB, GD, caseDefaut, joueurs);// remettre la tableau a plat
+		Fonctions.afficherInformations(this, texteErreur);// aficher le plateau
+
+		HashMap<String, Positions> choixPossible;
+
+		if (libre) {
+			choixPossible = piece.deplacementsPossibles(terrain, j, HB, GD, jA.getPion(), jA.getDame());
+		} else {
+			choixPossible = piece.deplacementsTueur(terrain, j, HB, GD, jA.getPion(), jA.getDame());
+		}
+
+		if (choixPossible == null || choixPossible.size() == 0) {
+
+			texteErreur = "cette piéce ne peut pas se déplacer";
+			if (libre) {
+				return false;
+			}
+			return true;
+		}
+
+		// réafficher le terrain avec les déplacements possibles
+		Fonctions.afficherInformations(this);
+
+		System.out.print("faire un choix ou 0 pour annuler : ");
+
+		String choixMouvement;
+
+		choixMouvement = Fonctions.choixMouvement(j.getControlByIA(), choixPossible.size());
+
+		if (!choixPossible.containsKey(choixMouvement)) {
+			texteErreur = "mouvement introuvable";
+			if (libre) {
+				return false;
+			}
+			return true;
+		}
+
+		// alors on échange + piece a tuer kill
+		System.out.println("\npiece : id = " + piece.getId() + " i = " + piece.getI() + " j = " + piece.getJ());
+		System.out.println("destination : i = " + choixPossible.get(choixMouvement).getI() + " j = "
+				+ choixPossible.get(choixMouvement).getJ());
+		
+		recupererLeCoup += Fonctions.traductionMouvement(piece,choixPossible.get(choixMouvement));
+
+		String kill = swap(piece, choixPossible.get(choixMouvement));
+
+		if (kill != "") {
+			jA.getPieces().remove(Fonctions.trad(kill));
+			deplacementLibre(false, piece, j, jA);
+		}
+
+		return true;
+
+	}
+
+	private String swap(Piece piece, Positions destination) {
 
 		// échange la place entre la piéce et la case vide de destination
-		System.out.println("piece : i = " + piece.getI() + " j = " + piece.getJ());
-		System.out.println("destination : i = " + destination.getI() + " j = " + destination.getJ());
 
 		piece.setI(destination.getI());
 		piece.setJ(destination.getJ());
-		
-		String result = piece.getManger();
-		piece.setManger("");
+
+		String result = destination.getManger();
 		return result;
 
 	}
 
-	public boolean isJouer() {
-		return this.jouer;
+	private void evolution(Piece piece, int hb) {
+
+		if (piece.getMotif() == pblanc && piece.getI() == hb - 1) {
+			System.out.println("pion blanc evolue : " + piece.getVisage() + "  " + piece.getId());
+
+			joueurs[0].getPieces().remove(piece.getId());
+
+			Piece inter = new Dame(piece.getId(), dblanc, piece.getI(), piece.getJ());
+
+			System.out.println("dame : " + inter.getId());
+
+			joueurs[0].addPiece(inter);
+			return;
+		}
+
+		if (piece.getMotif() == pnoir && piece.getI() == 0) {
+			System.out.println("pion noir evolue : " + piece.getVisage() + "  " + piece.getId());
+
+			joueurs[1].getPieces().remove(piece.getId());
+
+			Piece inter = new Dame(piece.getId(), dnoir, piece.getI(), piece.getJ());
+
+			System.out.println("dame : " + inter.getId());
+
+			joueurs[1].addPiece(inter);
+		}
+
+	}
+
+	// getters
+	public String[][] getTerrain() {
+		return terrain;
 	}
 
 	public Joueur[] getJoueurs() {
 		return joueurs;
 	}
 
-	public void setJouer(boolean jouer) {
-		this.jouer = jouer;
+	public int getNbTours() {
+		return nbTours;
 	}
 
-	public void setGD(int gD) {
-		GD = gD;
-	}
-
-	public void setHB(int hB) {
-		HB = hB;
-	}
-
-	public char getPblanc() {
-		return pblanc;
-	}
-
-	public void setPblanc(char pblanc) {
-		this.pblanc = pblanc;
-		joueurs[0].setPion(pblanc);
-	}
-
-	public char getDblanc() {
-		return dblanc;
-	}
-
-	public void setDblanc(char dblanc) {
-		this.dblanc = dblanc;
-		joueurs[0].setDame(dblanc);
-	}
-
-	public char getPnoir() {
-		return pnoir;
-	}
-
-	public void setPnoir(char pnoir) {
-		this.pnoir = pnoir;
-		joueurs[1].setPion(pnoir);
-	}
-
-	public char getDnoir() {
-		return dnoir;
-	}
-
-	public void setDnoir(char dnoir) {
-		this.dnoir = dnoir;
-		joueurs[1].setDame(dnoir);
-	}
-
-	public String[][] getTerrain() {
-		return terrain;
-	}
-
-	public void setTerrain(String[][] terrain) {
-		this.terrain = terrain;
-	}
-
-	public int getNbtours() {
-		return nbtours;
-	}
-
-	public void setNbtours(int nbtours) {
-		this.nbtours = nbtours;
-	}
-
-	public int getGD() {
-		return GD;
+	public boolean isJouer() {
+		return jouer;
 	}
 
 	public int getHB() {
 		return HB;
 	}
 
-	public void setJoueurs(Joueur[] joueurs) {
-		this.joueurs = joueurs;
+	public int getGD() {
+		return GD;
+	}
+
+	public char getPblanc() {
+		return pblanc;
+	}
+
+	public char getDblanc() {
+		return dblanc;
+	}
+
+	public char getPnoir() {
+		return pnoir;
+	}
+
+	public char getDnoir() {
+		return dnoir;
+	}
+
+	// setters
+	public void setJouer(boolean jouer) {
+		this.jouer = jouer;
+	}
+
+	public void setHB(int hB) {
+		HB = hB;
+	}
+
+	public void setGD(int gD) {
+		GD = gD;
+	}
+
+	public void setPblanc(char pblanc) {
+		this.pblanc = pblanc;
+	}
+
+	public void setDblanc(char dblanc) {
+		this.dblanc = dblanc;
+	}
+
+	public void setPnoir(char pnoir) {
+		this.pnoir = pnoir;
+	}
+
+	public void setDnoir(char dnoir) {
+		this.dnoir = dnoir;
+	}
+
+	public void setTerrain(String[][] terrain) {
+		this.terrain = terrain;
 	}
 
 }

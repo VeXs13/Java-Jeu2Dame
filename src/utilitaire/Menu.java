@@ -4,19 +4,19 @@ import jeu.Plateau;
 
 public class Menu {
 
-	public static Plateau menuPrincipal() {
+	public static void menuPrincipal() {
 
 		Plateau plateau = new Plateau();
 
 		Boolean continuer = true;
+		
+		String phraseErreur = "";
 
 		while (continuer) {
 
-			for (int i = 0; i < 100; i++) {
-				System.out.print("\n"); // sert a sauter une page a défaut de clear
-			}
-			
 			Fonctions.afficherAllInformations(plateau);
+			System.out.println(phraseErreur+"\n\n");
+			phraseErreur = "";
 
 			// faire un fichier avec des constantes si besoin
 			System.out.println("1) définir le joueur blanc");
@@ -30,10 +30,10 @@ public class Menu {
 
 			switch (choix) {
 			case "1":
-				Options.defJoueur(plateau.getJoueurs(),0);
+				Options.defJoueur(plateau.getJoueurs(), 0);
 				break;
 			case "2":
-				Options.defJoueur(plateau.getJoueurs(),1);
+				Options.defJoueur(plateau.getJoueurs(), 1);
 				break;
 			case "3":
 				Options.changerCarte(plateau);
@@ -43,16 +43,26 @@ public class Menu {
 				plateau.setJouer(false);
 				break;
 			case "5":
-				System.out.println("???");
-				continuer = false;
-				plateau.setJouer(true);
+				if (plateau.getTerrain() != null) {
+
+					if (!Fonctions.sameValue(plateau.getJoueurs()[0].getName(), plateau.getJoueurs()[1].getName())) {
+
+						continuer = false;
+						plateau.setJouer(true);
+					} else {
+						phraseErreur = "ils ont les mêmes noms";
+					}
+				}
 				break;
 
 			}
 
 		}
 
-		return plateau;
+		if (plateau.isJouer()) {
+
+			plateau.start();
+		}
 	}
 
 }
